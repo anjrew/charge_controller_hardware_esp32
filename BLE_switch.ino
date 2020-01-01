@@ -7,6 +7,7 @@
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
+#include "esp_pm.h"
 #include "Server_Callbacks.h"
 
 // See the following for generating UUIDs:
@@ -15,6 +16,14 @@
 #define SERVICE_UUID "4fafc201-1fb5-459e-8fcc-c5c9c331914b"
 #define CHARACTERISTIC_UUID "beb5483e-36e1-4688-b7f5-ea07361b26a8"
 
+esp_pm_config_esp32_t pm_config = {
+    .max_cpu_freq = RTC_CPU_FREQ_2M,
+    .max_freq_mhz = 2,
+    .min_cpu_freq = RTC_CPU_FREQ_XTAL,
+    .min_freq_mhz = 2,
+    .light_sleep_enable = true
+};
+
 void setup()
 {
   Serial.begin(115200);
@@ -22,8 +31,8 @@ void setup()
 
   pinMode(SWITCH_PIN, OUTPUT);
 
-  BLEDevice::init("CHARGE CONTROLLER");           // Creates visible name of device
-  BLEServer *pServer = BLEDevice::createServer(); // Sets the deivice as a server
+  BLEDevice::init("CHARGE CONTROLLER");                                // Creates visible name of device
+  BLEServer *pServer = BLEDevice::createServer();                      // Sets the deivice as a server
   BLEService *pService = pServer->createService(SERVICE_UUID);         // Creates a service
   BLECharacteristic *pCharacteristic = pService->createCharacteristic( // Creates a characteristic in that service with the UUID and Properties
       CHARACTERISTIC_UUID,
@@ -42,6 +51,8 @@ void setup()
   pAdvertising->setMinPreferred(0x12);
   BLEDevice::startAdvertising();
   Serial.println("Characteristic defined! Now you can read it in your phone!");
+
+  esp_pm_configure(&pm_config);
 };
 
 void loop()
